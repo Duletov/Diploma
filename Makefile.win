@@ -1,0 +1,88 @@
+# Project: Sparse_approximation
+# Makefile created by Dev-C++ 5.11
+
+CPP      = g++.exe
+CC       = gcc.exe
+WINDRES  = windres.exe
+OBJ      = main.o Algorithms/Algorithm.o Algorithms/DataSet.o Algorithms/Lasso.o Algorithms/LassoRegression.o Algorithms/matrix.o Algorithms/OMP.o Algorithms/OMP_str.o Algorithms/qr_solve.o Algorithms/r8lib.o Algorithms/SOMP.o Algorithms/StOMP.o Dictionaries/DctDictionary.o Dictionaries/Dictionary.o Dictionaries/GaborDictionary.o Dictionaries/HypSplineDictionary.o Dictionaries/MaxHypSplineDictionary.o Dictionaries/MaxSplineDictionary.o Dictionaries/MaxTrigSplineDictionary.o Dictionaries/SplineDictionary.o Dictionaries/TrigSplineDictionary.o
+LINKOBJ  = main.o Algorithms/Algorithm.o Algorithms/DataSet.o Algorithms/Lasso.o Algorithms/LassoRegression.o Algorithms/matrix.o Algorithms/OMP.o Algorithms/OMP_str.o Algorithms/qr_solve.o Algorithms/r8lib.o Algorithms/SOMP.o Algorithms/StOMP.o Dictionaries/DctDictionary.o Dictionaries/Dictionary.o Dictionaries/GaborDictionary.o Dictionaries/HypSplineDictionary.o Dictionaries/MaxHypSplineDictionary.o Dictionaries/MaxSplineDictionary.o Dictionaries/MaxTrigSplineDictionary.o Dictionaries/SplineDictionary.o Dictionaries/TrigSplineDictionary.o
+LIBS     = -L"D:/Dev-Cpp/MinGW64/lib" -L"D:/Dev-Cpp/MinGW64/x86_64-w64-mingw32/lib" -fopenmp
+INCS     = -I"D:/Dev-Cpp/MinGW64/include" -I"D:/Dev-Cpp/MinGW64/x86_64-w64-mingw32/include" -I"D:/Dev-Cpp/MinGW64/lib/gcc/x86_64-w64-mingw32/4.9.2/include"
+CXXINCS  = -I"D:/Dev-Cpp/MinGW64/include" -I"D:/Dev-Cpp/MinGW64/x86_64-w64-mingw32/include" -I"D:/Dev-Cpp/MinGW64/lib/gcc/x86_64-w64-mingw32/4.9.2/include" -I"D:/Dev-Cpp/MinGW64/lib/gcc/x86_64-w64-mingw32/4.9.2/include/c++"
+BIN      = Sparse_approximation.exe
+CXXFLAGS = $(CXXINCS) -std=c++11
+CFLAGS   = $(INCS) -std=c++11
+RM       = rm.exe -f
+
+.PHONY: all all-before all-after clean clean-custom
+
+all: all-before $(BIN) all-after
+
+clean: clean-custom
+	${RM} $(OBJ) $(BIN)
+
+$(BIN): $(OBJ)
+	$(CPP) $(LINKOBJ) -o $(BIN) $(LIBS)
+
+main.o: main.cpp
+	$(CPP) -c main.cpp -o main.o $(CXXFLAGS)
+
+Algorithms/Algorithm.o: Algorithms/Algorithm.cpp
+	$(CPP) -c Algorithms/Algorithm.cpp -o Algorithms/Algorithm.o $(CXXFLAGS)
+
+Algorithms/DataSet.o: Algorithms/DataSet.cpp
+	$(CPP) -c Algorithms/DataSet.cpp -o Algorithms/DataSet.o $(CXXFLAGS)
+
+Algorithms/Lasso.o: Algorithms/Lasso.cpp
+	$(CPP) -c Algorithms/Lasso.cpp -o Algorithms/Lasso.o $(CXXFLAGS)
+
+Algorithms/LassoRegression.o: Algorithms/LassoRegression.cpp
+	$(CPP) -c Algorithms/LassoRegression.cpp -o Algorithms/LassoRegression.o $(CXXFLAGS)
+
+Algorithms/matrix.o: Algorithms/matrix.cpp
+	$(CPP) -c Algorithms/matrix.cpp -o Algorithms/matrix.o $(CXXFLAGS)
+
+Algorithms/OMP.o: Algorithms/OMP.cpp
+	$(CPP) -c Algorithms/OMP.cpp -o Algorithms/OMP.o $(CXXFLAGS)
+
+Algorithms/OMP_str.o: Algorithms/OMP_str.cpp
+	$(CPP) -c Algorithms/OMP_str.cpp -o Algorithms/OMP_str.o $(CXXFLAGS)
+
+Algorithms/qr_solve.o: Algorithms/qr_solve.cpp
+	$(CPP) -c Algorithms/qr_solve.cpp -o Algorithms/qr_solve.o $(CXXFLAGS)
+
+Algorithms/r8lib.o: Algorithms/r8lib.cpp
+	$(CPP) -c Algorithms/r8lib.cpp -o Algorithms/r8lib.o $(CXXFLAGS)
+
+Algorithms/SOMP.o: Algorithms/SOMP.cpp
+	$(CPP) -c Algorithms/SOMP.cpp -o Algorithms/SOMP.o $(CXXFLAGS)
+
+Algorithms/StOMP.o: Algorithms/StOMP.cpp
+	$(CPP) -c Algorithms/StOMP.cpp -o Algorithms/StOMP.o $(CXXFLAGS)
+
+Dictionaries/DctDictionary.o: Dictionaries/DctDictionary.cpp
+	$(CPP) -c Dictionaries/DctDictionary.cpp -o Dictionaries/DctDictionary.o $(CXXFLAGS)
+
+Dictionaries/Dictionary.o: Dictionaries/Dictionary.cpp
+	$(CPP) -c Dictionaries/Dictionary.cpp -o Dictionaries/Dictionary.o $(CXXFLAGS)
+
+Dictionaries/GaborDictionary.o: Dictionaries/GaborDictionary.cpp
+	$(CPP) -c Dictionaries/GaborDictionary.cpp -o Dictionaries/GaborDictionary.o $(CXXFLAGS)
+
+Dictionaries/HypSplineDictionary.o: Dictionaries/HypSplineDictionary.cpp
+	$(CPP) -c Dictionaries/HypSplineDictionary.cpp -o Dictionaries/HypSplineDictionary.o $(CXXFLAGS)
+
+Dictionaries/MaxHypSplineDictionary.o: Dictionaries/MaxHypSplineDictionary.cpp
+	$(CPP) -c Dictionaries/MaxHypSplineDictionary.cpp -o Dictionaries/MaxHypSplineDictionary.o $(CXXFLAGS)
+
+Dictionaries/MaxSplineDictionary.o: Dictionaries/MaxSplineDictionary.cpp
+	$(CPP) -c Dictionaries/MaxSplineDictionary.cpp -o Dictionaries/MaxSplineDictionary.o $(CXXFLAGS)
+
+Dictionaries/MaxTrigSplineDictionary.o: Dictionaries/MaxTrigSplineDictionary.cpp
+	$(CPP) -c Dictionaries/MaxTrigSplineDictionary.cpp -o Dictionaries/MaxTrigSplineDictionary.o $(CXXFLAGS)
+
+Dictionaries/SplineDictionary.o: Dictionaries/SplineDictionary.cpp
+	$(CPP) -c Dictionaries/SplineDictionary.cpp -o Dictionaries/SplineDictionary.o $(CXXFLAGS)
+
+Dictionaries/TrigSplineDictionary.o: Dictionaries/TrigSplineDictionary.cpp
+	$(CPP) -c Dictionaries/TrigSplineDictionary.cpp -o Dictionaries/TrigSplineDictionary.o $(CXXFLAGS)
