@@ -5,6 +5,8 @@
 #include <ctime>
 #include <cmath>
 
+#include "Audio/AudioReader.cpp"
+
 #include "Dictionaries/Dictionary.cpp"
 #include "Dictionaries/GaborDictionary.cpp"
 #include "Dictionaries/DctDictionary.cpp"
@@ -24,7 +26,7 @@
 
 int main(int argc, char** argv) {
 	
-	if (argc != 7)	{
+	if (!(argc == 9))	{
 		return -1;
 	}
 	
@@ -34,6 +36,8 @@ int main(int argc, char** argv) {
 	int rightBorder = std::stoi(argv[4]);
 	char dictType = argv[5][0];
 	char algoType = argv[6][0];
+	char signalType = argv[7][0];
+	char *signal = argv[8];
 	
 	int temp=0;
 	if(dictType == 's' or dictType == 't' or dictType == 'h'){
@@ -96,43 +100,48 @@ int main(int argc, char** argv) {
 	
 	
 	nAtoms = nAtoms + temp;
-	/*
-	auto fname = "Algorithms\\dicts\\" + dictType + std::to_string(allAtomsCount) + std::to_string(szSignal) + ".txt";
-	std::ofstream outf(fname);
 	
-	for (int i = 0; i < allAtomsCount; i++) {
-		for (int j = 0; j < szSignal; j++) {
-			outf << std::to_string(mDictionary[i * szSignal + j]) << std::endl;
-			//std::cout << std::to_string(mDictionary[i * szSignal + j]) << " ";
-		}
+	if(signalType == 'a'){
+		audioReader(vSignal, rSignal, szSignal, szTest, signal);
 	}
-	
-	if(dictType == 's' or dictType == 't' or dictType == 'h'){
-		auto fnamee = "Algorithms\\dicts\\" + dictType + std::to_string(allAtomsCount) + std::to_string(szTest) + ".txt";
-		std::ofstream outf1(fnamee);
-		
-		for (int i = 0; i < allAtomsCount; i++) {
-			for (int j = 0; j < szTest; j++) {
-				outf1 << std::to_string(fullDictionary[i * szTest + j]) << std::endl;
+	else{
+		if(signalType == 's'){
+			switch(signal[0]){
+				case 'x':{
+					for(int i=0;i<szSignal;i++){
+						vSignal[i] = (i*1.0/szSignal)*(i*1.0/szSignal);
+					}
+					for(int i=0;i<szTest;i++){
+						rSignal[i] = (i*1.0/szTest)*(i*1.0/szTest);
+					}
+					break;
+				}
+				case 'c':{
+					for(int i=0;i<szSignal;i++){
+						vSignal[i] = 0.2*cosh(i*5.0/szSignal);
+					}
+					for(int i=0;i<szTest;i++){
+						rSignal[i] = 0.2*cosh(i*5.0/szTest);
+					}
+					break;
+				}
+				case 'a':{
+					for(int i=0;i<szSignal;i++){
+						vSignal[i] = atan(i * 10.0 / szSignal);
+					}
+					for(int i=0;i<szTest;i++){
+						rSignal[i] = atan(i*10.0/szTest);
+					}
+					break;
+				}
+				default:{
+					std::cout << "signal is not defined";
+					return 1;
+				}
 			}
-			//std::cout << std::endl;
 		}
 	}
-	*/
 	
-	auto fname = "signals/Black_Hole_Billiards.wav_boost.txt";
-	std::ifstream in2(fname);
-	for(int i=0;i<szSignal;i++){
-		vSignal[i] = (i*1.0/szSignal)*(i*1.0/szSignal);
-		//in2 >> vSignal[i];
-	}
-	fname = "signals/Black_Hole_Billiards.wav_boost_test.txt";
-	std::ifstream in3(fname);
-	for(int i=0;i<szTest;i++){
-		rSignal[i] = (i*1.0/szTest)*(i*1.0/szTest);
-		//in3 >> rSignal[i];
-	}
-	std::cout << std::endl;
 	auto start = clock();
 	
 	switch(algoType){
@@ -167,8 +176,8 @@ int main(int argc, char** argv) {
 		}
 	}
 	auto end = clock();
-	std::cout << "Algorithm running time:" << std::endl;
-	std::cout << (end - start) / CLOCKS_PER_SEC << " s";
+	
+	std::cout << "\n" << (end - start) / CLOCKS_PER_SEC << " seconds";
 	
 	delete [] mDictionary;
 	delete [] fullDictionary;

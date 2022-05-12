@@ -53,7 +53,7 @@ class OMPsAlgorithm : public Algorithm {
 			}
 		  	
 		  	std::ofstream fout;
-			fout.open("imggg6.txt");
+			fout.open("result.txt");
 			
 			printf("\naSignal\n");    
 		    for(int i=0;i<szTest;i++){
