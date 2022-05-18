@@ -28,14 +28,17 @@ class SplineOMPAlgorithm : public Algorithm {
 			omp_set_num_threads(omp_get_num_procs());
 		    
 		    /* Perform deep copy of the original dictionary matrix */
-		    for ( int i = 0; i < nAtoms; i++ )
-		    {
-		    	////#pragma omp for
-		        for ( int j = 0; j < szSignal; j++ )
-		        {
-		            mNewDictionary[(i*szSignal) + j] = mDictionary[(i*szSignal) + j];
-		        }
-		    }
+		    #pragma omp parallel num_threads(2)
+			{
+				#pragma omp for
+			    for ( int i = 0; i < nAtoms; i++ )
+			    {
+			        for ( int j = 0; j < szSignal; j++ )
+			        {
+			            mNewDictionary[(i*szSignal) + j] = mDictionary[(i*szSignal) + j];
+			        }
+			    }
+			}
 		
 		    chosen = (omp(vSignal,mNewDictionary,tolerance1,szSignal, nAtoms,
 		        iOldDictionary,mOrthogonalDictionary,mBiorthogonal,vCoefficients));
@@ -46,14 +49,17 @@ class SplineOMPAlgorithm : public Algorithm {
 		    	printf("%f %d\n",vCoefficients[i], iOldDictionary[i]);
 		    }
 		    double aSignal[szTest];
-		    for (int i=0;i<szTest;i++){
-				double temp = 0;
-				//#pragma omp for
-		    	for (int j=0;j<chosen;j++){
-					temp += fullDictionary[iOldDictionary[j]*szTest+i]*vCoefficients[j];
-		    	}
-		    	aSignal[i] = temp;
-//		    	std::cout << temp << " ";
+		    #pragma omp parallel num_threads(2)
+			{
+				#pragma omp for
+			    for (int i=0;i<szTest;i++){
+					double temp = 0;
+			    	for (int j=0;j<chosen;j++){
+						temp += fullDictionary[iOldDictionary[j]*szTest+i]*vCoefficients[j];
+			    	}
+			    	aSignal[i] = temp;
+	//		    	std::cout << temp << " ";
+				}
 			}
 			
 			printf("\naSignal\n");    
@@ -63,7 +69,6 @@ class SplineOMPAlgorithm : public Algorithm {
 		    fout.close();*/
 		    
 		    double max=0.0;
-		    //#pragma omp for
 		    for(int i=2;i<szTest-2;i++){
 		    	//if(fabs(rSignal[i]-aSignal[i])>max){
 		    	//	max=fabs(rSignal[i]-aSignal[i]);
@@ -95,7 +100,7 @@ class SplineOMPAlgorithm : public Algorithm {
 		double real_inner_product(double *v1, double *v2, int szVector)
 		{
 		  double sum = 0.0;
-		  //#pragma omp for
+		  
 		  for ( int i = 0; i < szVector; i++)
 		  {
 		    sum = sum + v1[i]*v2[i];    
@@ -117,16 +122,19 @@ class SplineOMPAlgorithm : public Algorithm {
 		{
 		    double t;
 		    
-		    for (int i=0;i<n;i++)
+			#pragma omp parallel num_threads(2)
 			{
-				double temp = 0;
-				//#pragma omp for
-		    	for (int j=0;j<m;j++)
-		    	{
-		      		temp += matrix[i*m+j]*vector[j];
-		    	}
-		    	returnVector[i] = temp;
-		  	}
+				#pragma omp for
+			    for (int i=0;i<n;i++)
+				{
+					double temp = 0;
+			    	for (int j=0;j<m;j++)
+			    	{
+			      		temp += matrix[i*m+j]*vector[j];
+			    	}
+			    	returnVector[i] = temp;
+			  	}
+		    }
 		    return returnVector;
 		}
 		
@@ -186,37 +194,6 @@ class SplineOMPAlgorithm : public Algorithm {
 				}
 			}
 		    
-		    
-		    /*for ( int rightIndex = 0; rightIndex < n; rightIndex++)
-		    {
-		    	std::cout << cc1[rightIndex] << " " << rightIndex << "\n";
-		        if(fabs(cc1[rightIndex]) > localMaxValue){
-	                maxIndex = rightIndex;
-	                localMaxValue = fabs(cc1[rightIndex]);
-	                if(rightIndex-leftIndex>2)
-						if(fabs(cc1[leftIndex]) > tolerance2 && fabs(cc1[leftIndex]) * 10 >  localMaxValue){
-		                	chosenAtoms.push_back(leftIndex);
-		                	std::cout << "Choose Left! " << leftIndex << "\n";
-		                	leftIndex = rightIndex;
-		                	if(fabs(cc1[leftIndex])>maxValue)
-								maxValue = fabs(cc1[leftIndex]);
-						}
-						else{
-							leftIndex = rightIndex;
-						}
-	            }
-		        else{
-		        	if(rightIndex-leftIndex>2){
-	                	chosenAtoms.push_back(maxIndex);
-	                	std::cout << "Choose Middle! " << maxIndex << " " << leftIndex << "\n";
-	                	leftIndex = maxIndex+1;
-	                	maxIndex = rightIndex;
-	                	localMaxValue = cc1[rightIndex];
-	                	if(fabs(cc1[maxIndex])>maxValue)
-							maxValue = fabs(cc1[maxIndex]);
-					}
-				}
-		    }*/
 	    
 	    	if(fabs(cc1[rightIndex]) > tolerance2 && rightIndex-leftIndex>2){
 	    		chosenAtoms.push_back(rightIndex);
@@ -248,7 +225,7 @@ class SplineOMPAlgorithm : public Algorithm {
 		}
 		
 		
-		void reorthognalize(double *mOrthogonalDictionary,int szSignal,int start, int end, int nRepetitions)
+		void reorthognalize(double *mOrthogonalDictionary,int szSignal,int k, int nRepetitions)
 		{
 		    double alpha;
 		
@@ -259,85 +236,67 @@ class SplineOMPAlgorithm : public Algorithm {
 		      *      end
 		      * end
 		     */
-	        if (start > 0)
-	        {            
-	            for ( int k = start; k < end ; k++)
-	            {      	
-				    for ( int l = 0; l < nRepetitions; l++ )
-				    {
-		            	for(int i=0; i<k; i++){
-		            		alpha = real_inner_product(&mOrthogonalDictionary[(i*szSignal)],&mOrthogonalDictionary[(k*szSignal)],szSignal);
-			               	
-									 
-			                //#pragma omp for
-			                for ( int j = 0; j < szSignal; j++)
-			                {
-			                    mOrthogonalDictionary[(k*szSignal) + j] = mOrthogonalDictionary[(k*szSignal)+j] - alpha*mOrthogonalDictionary[(i*szSignal) + j];
-			                }	
-						}
-	            	}
-	        	}
-		    }
-		}
-		
-		double normalize(double *atom, int szSignal)
-		{   
-		    double normAtom = sqrt(real_inner_product(atom,atom,szSignal));
-		    //#pragma omp for
-		    for ( int i = 0; i < szSignal; i++)
+		    for ( int l = 0; l < nRepetitions; l++ )
 		    {
-		        atom[i] = atom[i]/normAtom;
-		        if(std::isinf(atom[i]))
-		        	std::cout << normAtom << "\n";
+		        if (k > 0)
+		        {   
+		            for ( int i = 0; i < k ; i++)
+		            {
+		                alpha = real_inner_product(&mOrthogonalDictionary[(i*szSignal)],&mOrthogonalDictionary[(k*szSignal)],szSignal);
+		                for ( int j = 0; j < szSignal; j++)
+		                {
+		                    mOrthogonalDictionary[(k*szSignal) + j] -= alpha*mOrthogonalDictionary[(i*szSignal) + j];
+		                }
+		            }
+		        }
 		    }
-		    return normAtom;
 		}
 		
-		void calc_biorthogonal(double *mBiorthogonal, double *mNewDictionary, double *mOrthogonalDictionary, int startOrt, int szSignal, int all)
+		void calc_biorthogonal(double *mBiorthogonal, double *vNewAtom, double *vOrthogonalAtom, double normAtom, int szSignal, int k)
 		{
 		    /* Compute biorthogonal functions beta from 1 to k-1
 		     * MATLAB CODE
 		     * beta=beta-Q(:,k)*(D(:,k)'*beta)/nork;
 		     */
-			
-			double normKthAtom[all];
-			
-			for(int i=0; i<all; i++)
-				normKthAtom[i] = 0.0;
-            
-            
-			for(int i=0; i<all; i++){
-				normKthAtom[i] = normalize(&mOrthogonalDictionary[(startOrt + i)*szSignal],szSignal);
-			}
-						
-						
+		
 		    double alpha;
-		    
-		    if ( startOrt > 0 )
+		    /* If picking more than 150 atoms may be quicker to use BLAS and the matrix vector multiplication */
+		    if ( k > 0 )
 		    {
-		    	for(int k = 0; k < all; k++){
-		    		for ( int j = 0; j < startOrt + k; j++ )
+				#pragma omp parallel num_threads(2) private(alpha)
+				{
+					#pragma omp for   
+			        for ( int j = 0; j < k ; j++ )
 			        {
-			            alpha = real_inner_product(&mNewDictionary[(startOrt + k)*szSignal],&mBiorthogonal[(j*szSignal)],szSignal)/normKthAtom[k];
-			            
-						//#pragma omp for
+			            alpha = real_inner_product(vNewAtom,&mBiorthogonal[(j*szSignal)],szSignal)/normAtom;
 			            for ( int i = 0; i < szSignal; i++ )
 			            {		 	  
-			            	//double temp = mBiorthogonal[(j*szSignal)+i];
-			                mBiorthogonal[(j*szSignal)+i] = mBiorthogonal[(j*szSignal)+i] - alpha*mOrthogonalDictionary[(startOrt + k)*szSignal + i];  
+			                mBiorthogonal[(j*szSignal)+i] = mBiorthogonal[(j*szSignal)+i] - alpha*vOrthogonalAtom[i];        
 			            }
 			        }
-				}
+			    }
 		    }
 		    
 		    /* Calculate the kth biorthogonal function
 		     * MATLAB CODE
 		     * beta(:,k)=Q(:,k)/nork; % kth biorthogonal function
 		     */        
-		    //#pragma omp for
-		    for(int k=0;k<all;k++)
-			    for ( int i = 0; i< szSignal; i++ )
-			        mBiorthogonal[((startOrt + k)*szSignal)+i] = mOrthogonalDictionary[(startOrt + k)*szSignal + i]/normKthAtom[k];
+		    for ( int i = 0; i< szSignal; i++ )
+		    {
+		        mBiorthogonal[(k*szSignal)+i] = vOrthogonalAtom[i]/normAtom;
+		    } 
+		            
+		    
+		}
+		
+		double normalize(double *atom, int szSignal)
+		{   
+		    double normAtom = sqrt(real_inner_product(atom,atom,szSignal));
+		    for ( int i = 0; i < szSignal; i++)
+		    {
+		        atom[i] = atom[i]/normAtom;
+		    }
+		    return normAtom;
 		}
 		
 		void calc_residue(double *residue, double *vSignal, double *mOrthogonalDictionary, int szSignal)
@@ -349,19 +308,16 @@ class SplineOMPAlgorithm : public Algorithm {
 		
 		    double alpha;
 		    
-		    alpha = real_inner_product(mOrthogonalDictionary,vSignal,szSignal);
-			//#pragma omp for   
+		    alpha = real_inner_product(mOrthogonalDictionary,vSignal,szSignal);  
 		    for ( int i = 0; i < szSignal; i++)
 		    {
 		       residue[i] = residue[i] - alpha*mOrthogonalDictionary[i];
 		    }
-		    
 		}
 		
 		void swap_elements(double *swapA, double *swapB, int nRows)
 		{
 		    double swappedElement;
-		    //#pragma omp for
 		    for ( int i = 0; i < nRows; i++ )
 		    {
 		        swappedElement = swapB[i];
@@ -419,10 +375,7 @@ class SplineOMPAlgorithm : public Algorithm {
 		
 		    normresidue = sqrt(real_inner_product(residue,residue,szSignal));
 			        
-			        /*for(int i=0;i<szSignal;i++){
-			        	printf("%f ", residue[i]);
-					}*/
-					printf(" %f", normresidue); 
+			
 		    /* The number of iterations should be less the min of the nAtoms
 		     * and the szSignal. */
 		    
@@ -451,7 +404,7 @@ class SplineOMPAlgorithm : public Algorithm {
 		    /********************* Start of main routine *****************/
 		    /*************************************************************/
 			
-		    for (int y = 0; y < 2; y++)
+		    for (int y = 0; y < 5; y++)
 		    {
 		    	trig = 0;
 		    	for(int m = 0; m<deep-1; m++){
@@ -508,19 +461,22 @@ class SplineOMPAlgorithm : public Algorithm {
 				        z++;
 				    }
 				    
-			        /* Re-orthogonalization of Q(:,k)  w.r.t Q(:,1),..., Q(:,k-1) */
-			                
-			        /* Normalize atom Q(:,k)
-			         * MATLAB CODE
-			         * nork=norm(Q(:,k));
-			         * Q(:,k)=Q(:,k)/nork; %normalization
-			         */
-					 reorthognalize(mOrthogonalDictionary,szSignal,old2, z,2);
-					 
-						/* Compute biorthogonal functions beta*/
-						
-     				 calc_biorthogonal(mBiorthogonal, mTempDictionary, mOrthogonalDictionary, old2, szSignal, z-old2);
 					for(int j=old2;j<z;j++){
+						
+						/* Re-orthogonalization of Q(:,k)  w.r.t Q(:,1),..., Q(:,k-1) */
+				        reorthognalize(mOrthogonalDictionary,szSignal,j,2);
+				                
+				        
+				        /* Normalize atom Q(:,k)
+				         * MATLAB CODE
+				         * nork=norm(Q(:,k));
+				         * Q(:,k)=Q(:,k)/nork; %normalization
+				         */      
+				        normKthAtom = normalize(&mOrthogonalDictionary[j*szSignal],szSignal);
+				         
+				        
+				        /* Compute biorthogonal functions beta*/
+				        calc_biorthogonal(mBiorthogonal, &mTempDictionary[j*szSignal], &mOrthogonalDictionary[j*szSignal], normKthAtom, szSignal, j);
 			        
 						/* Calculate the residue */
 			        	calc_residue(residue, vSignal, &mOrthogonalDictionary[j*szSignal], szSignal);
@@ -538,13 +494,13 @@ class SplineOMPAlgorithm : public Algorithm {
 			        	printf("%f ", residue[i]);
 					}*/
 					
-				printf(" %f", normresidue); 
+				//printf(" %f", normresidue); 
 			        
 			        
 				    selected[m] += iChosenAtom.size();
     			 	summ += iChosenAtom.size();
 				    
-				    std::cout << " " << selected[m] << " " << m << std::endl;
+				    //std::cout << " " << selected[m] << " " << m << std::endl;
 					
 			    	iChosenAtom.clear();
 			    }
@@ -602,22 +558,27 @@ class SplineOMPAlgorithm : public Algorithm {
 				        z++;
 				    }
 				    
-					 reorthognalize(mOrthogonalDictionary,szSignal,old2, z,2);
-					 /*for(int h=old2;h<=z;h++){
-					 	for(int g=0;g<szSignal;g++){
-					 		std::cout << mOrthogonalDictionary[h*szSignal+g] << " ";
-						 }
-						 std::cout << std::endl;
-					 }*/
-					 
-						/* Compute biorthogonal functions beta*/
+					for(int j=old2;j<z;j++){
 						
-     				 calc_biorthogonal(mBiorthogonal, mTempDictionary, mOrthogonalDictionary, old2, szSignal, z-old2);
-					for(int j=0;j<=k-old;j++){
+						/* Re-orthogonalization of Q(:,k)  w.r.t Q(:,1),..., Q(:,k-1) */
+				        reorthognalize(mOrthogonalDictionary,szSignal,j,2);
+				                
+				        
+				        /* Normalize atom Q(:,k)
+				         * MATLAB CODE
+				         * nork=norm(Q(:,k));
+				         * Q(:,k)=Q(:,k)/nork; %normalization
+				         */      
+				        normKthAtom = normalize(&mOrthogonalDictionary[j*szSignal],szSignal);
+				         
+				        
+				        /* Compute biorthogonal functions beta*/
+				        calc_biorthogonal(mBiorthogonal, &mTempDictionary[j*szSignal], &mOrthogonalDictionary[j*szSignal], normKthAtom, szSignal, j);
 			        
 						/* Calculate the residue */
-			        	calc_residue(residue, vSignal, &mOrthogonalDictionary[(j+old2)*szSignal], szSignal);
-					}       
+			        	calc_residue(residue, vSignal, &mOrthogonalDictionary[j*szSignal], szSignal);
+					}
+					      
 			        /*for(int i=0;i<k;i++){
 				    	for(int j=0;j<szSignal;j++){
 				    		std::cout << mBiorthogonal[i*szSignal+j] << " ";
@@ -649,7 +610,7 @@ class SplineOMPAlgorithm : public Algorithm {
 		            printf("%d %f\n", summ, normresidue);
 		            break;                          
 		        }
-		    	printf("%d %f\n", summ, normresidue);
+		    	//printf("%d %f\n", summ, normresidue);
 		    	
 		    	
 			    
@@ -660,7 +621,6 @@ class SplineOMPAlgorithm : public Algorithm {
 				}
 				
 		    }
-		    
 		    /*Calculate the coefficients
 		    * MATLAB CODE
 		    * c=f*beta;
@@ -673,6 +633,7 @@ class SplineOMPAlgorithm : public Algorithm {
 		        
 		    }
 		    
+		    std::cout << "\n z: " << z << "\n";
 		    //delete [] mTempDictionary;
 		    return z;
 		}
